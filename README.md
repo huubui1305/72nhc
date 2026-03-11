@@ -1,35 +1,50 @@
-# 72nhc
+"""
+72nhc - Vietnam Personal Income Tax Calculator (2026)
 
-A simple open-source calculator for **Vietnam Personal Income Tax (PIT)** using the progressive tax system.
+Updated for the new tax policy starting Jan 1, 2026
+"""
 
-## Features
+PERSONAL_DEDUCTION = 15500000
+DEPENDENT_DEDUCTION = 6200000
 
-- Calculate monthly personal income tax
-- Supports dependent deduction
-- Based on Vietnam progressive tax brackets
+TAX_BRACKETS = [
+    (10000000, 0.05),
+    (30000000, 0.10),
+    (60000000, 0.20),
+    (100000000, 0.30),
+    (float("inf"), 0.35),
+]
 
-## Tax Formula
 
-Taxable income is calculated as:
+def calculate_tax(income, dependents=0):
+    """
+    Calculate monthly PIT in Vietnam (2026)
 
-Income - Personal Deduction - Dependent Deduction
+    income: gross monthly income
+    dependents: number of dependents
+    """
 
-Personal deduction: 11,000,000 VND  
-Dependent deduction: 4,400,000 VND / person
+    taxable_income = income - PERSONAL_DEDUCTION - dependents * DEPENDENT_DEDUCTION
 
-## Tax Brackets
+    if taxable_income <= 0:
+        return {
+            "taxable_income": 0,
+            "tax": 0
+        }
 
-| Income Range | Tax Rate |
-|---------------|-----------|
-| 0 – 5M | 5% |
-| 5M – 10M | 10% |
-| 10M – 18M | 15% |
-| 18M – 32M | 20% |
-| 32M – 52M | 25% |
-| 52M – 80M | 30% |
-| >80M | 35% |
+    tax = 0
+    previous_limit = 0
 
-## Example
+    for limit, rate in TAX_BRACKETS:
 
-```bash
-python example.py
+        if taxable_income > limit:
+            tax += (limit - previous_limit) * rate
+            previous_limit = limit
+        else:
+            tax += (taxable_income - previous_limit) * rate
+            break
+
+    return {
+        "taxable_income": taxable_income,
+        "tax": round(tax, 0)
+    }
